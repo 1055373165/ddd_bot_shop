@@ -1,0 +1,53 @@
+syntax = "proto3";
+
+import "customerspb/messages.proto";
+
+package customerspb;
+
+option go_package = "customers/customerspb"; // 保生成的代码被放置在正确的目录中
+
+service CustomersService {
+  rpc RegisterCustomer(RegisterCustomerRequest) returns (RegisterCustomerResponse) {};
+  rpc AuthorizeCustomer(AuthorizeCustomerRequest) returns (AuthorizeCustomerResponse) {};
+  rpc GetCustomer(GetCustomerRequest) returns (GetCustomerResponse) {};
+  rpc GetCustomers(GetCustomersRequest) returns (GetCustomersResponse) {};
+  rpc EnableCustomer(EnableCustomerRequest) returns (EnableCustomerResponse) {};
+  rpc DisableCustomer(DisableCustomerRequest) returns (DisableCustomerResponse) {};
+}
+
+message RegisterCustomerRequest {
+  string name = 1;
+  string sms_number = 2;
+}
+message RegisterCustomerResponse {
+  string id = 1;
+}
+
+message AuthorizeCustomerRequest {
+  string id = 1;
+}
+message AuthorizeCustomerResponse {}
+
+message GetCustomerRequest {
+  string id = 1;
+}
+message GetCustomerResponse {
+  Customer customer = 1;
+}
+
+message GetCustomersRequest {
+}
+
+message GetCustomersResponse {
+  repeated Customer customers = 1;
+}
+
+message EnableCustomerRequest {
+  string id = 1;
+}
+message EnableCustomerResponse {}
+
+message DisableCustomerRequest {
+  string id = 1;
+}
+message DisableCustomerResponse {}

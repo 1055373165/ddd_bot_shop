@@ -1,0 +1,13 @@
+type: google.api.Service
+config_version: 3
+http:
+  rules:
+    - selector: orderingpb.OrderingService.CreateOrder
+      post: /api/ordering
+      body: "*"
+    - selector: orderingpb.OrderingService.GetOrder
+      get: /api/ordering/{id}
+    - selector: orderingpb.OrderingService.GetOrders
+      get: /api/ordering
+    - selector: orderingpb.OrderingService.CancelOrder
+      delete: /api/ordering/{id}
