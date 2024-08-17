@@ -1,3 +1,4 @@
+```
 .
 ├── Makefile  依赖按照（grpc、openapi）
 ├── baskets   购物车服务
@@ -87,7 +88,7 @@ customers(用户服务)
     ├── module.go
     ├── stores_test.go
     └── storespb
-
+```
 
 
 服务开发流程
@@ -104,11 +105,8 @@ customers(用户服务)
    5. postgres
    6. models（可选）
 
-
 数据库别忘了
-
 .env 也要修改
-
 
 ```
 {
