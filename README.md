@@ -105,9 +105,6 @@ customers(用户服务)
    5. postgres
    6. models（可选）
 
-数据库别忘了
-.env 也要修改
-
 ```
 {
   "order": {
