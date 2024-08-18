@@ -8,6 +8,7 @@ import (
 
 type InvoiceRepository interface {
 	Find(ctx context.Context, invoiceID string) (*models.Invoice, error)
+	FindAll(ctx context.Context) ([]*models.Invoice, error)
 	Save(ctx context.Context, invoice *models.Invoice) error
 	Update(ctx context.Context, invoice *models.Invoice) error
 }

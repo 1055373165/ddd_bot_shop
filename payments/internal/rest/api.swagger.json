@@ -51,6 +51,27 @@
       }
     },
     "/api/payments/invoices": {
+      "get": {
+        "summary": "get invoice list",
+        "operationId": "getInvoices",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/paymentspbGetInvoicesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "Invoice"
+        ]
+      },
       "post": {
         "summary": "Create an invoice for payment",
         "operationId": "createInvoice",
@@ -121,6 +142,29 @@
           "Invoice"
         ]
       }
+    },
+    "/api/payments/payments": {
+      "get": {
+        "summary": "get Payment list",
+        "operationId": "getPayments",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/paymentspbGetPaymentsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "Payment"
+        ]
+      }
     }
   },
   "definitions": {
@@ -179,8 +223,65 @@
         }
       }
     },
+    "paymentspbGetInvoicesResponse": {
+      "type": "object",
+      "properties": {
+        "invoices": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/paymentspbInvoice"
+          }
+        }
+      }
+    },
+    "paymentspbGetPaymentsResponse": {
+      "type": "object",
+      "properties": {
+        "payments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/paymentspbPayment"
+          }
+        }
+      }
+    },
+    "paymentspbInvoice": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "orderId": {
+          "type": "string"
+        },
+        "amount": {
+          "type": "number",
+          "format": "double"
+        },
+        "status": {
+          "type": "string"
+        }
+      }
+    },
     "paymentspbPayInvoiceResponse": {
       "type": "object"
+    },
+    "paymentspbPayment": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "customerId": {
+          "type": "string"
+        },
+        "amount": {
+          "type": "number",
+          "format": "double"
+        }
+      }
     },
     "protobufAny": {
       "type": "object",

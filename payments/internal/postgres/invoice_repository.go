@@ -45,6 +45,41 @@ func (r InvoiceRepository) Find(ctx context.Context, invoiceID string) (*models.
 	return invoice, nil
 }
 
+func (r InvoiceRepository) FindAll(ctx context.Context) ([]*models.Invoice, error) {
+	const query = "SELECT id, order_id, amount, status FROM %s"
+
+	rows, err := r.db.QueryContext(ctx, r.table(query))
+	if err != nil {
+		return nil, errors.Wrap(err, "query invoice")
+	}
+	defer func(rows *sql.Rows) {
+		if err = rows.Close(); err != nil {
+			err = errors.Wrap(err, "closing invoice")
+		}
+	}(rows)
+
+	invoices := []*models.Invoice{}
+	for rows.Next() {
+		invoice := &models.Invoice{}
+
+		var status string
+
+		err = rows.Scan(&invoice.ID, &invoice.OrderID, &invoice.Amount, &status)
+		if err != nil {
+			return nil, errors.Wrap(err, "scanning invoice")
+		}
+
+		invoice.Status, err = r.statusToDomain(status)
+		if err != nil {
+			return nil, errors.Wrap(err, "status to domain")
+		}
+
+		invoices = append(invoices, invoice)
+	}
+
+	return invoices, nil
+}
+
 func (r InvoiceRepository) Save(ctx context.Context, invoice *models.Invoice) error {
 	const query = "INSERT INTO %s (id, order_id, amount, status) VALUES ($1, $2, $3, $4)"
 

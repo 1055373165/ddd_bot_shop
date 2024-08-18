@@ -3,9 +3,11 @@ package ordering
 import (
 	"context"
 
+	"eda-in-go/internal/ddd"
 	"eda-in-go/internal/monolith"
 	"eda-in-go/ordering/internal/application"
 	"eda-in-go/ordering/internal/grpc"
+	"eda-in-go/ordering/internal/handlers"
 	"eda-in-go/ordering/internal/logging"
 	"eda-in-go/ordering/internal/postgres"
 	"eda-in-go/ordering/internal/rest"
@@ -15,6 +17,7 @@ type Module struct{}
 
 func (Module) Startup(ctx context.Context, mono monolith.Monolith) error {
 	// setup Driven adapters
+	domainDispatcher := ddd.NewEventDispatcher()
 	orders := postgres.NewOrderRepository("ordering.orders", mono.DB())
 	conn, err := grpc.Dial(ctx, mono.Config().Rpc.Address())
 	if err != nil {
@@ -28,8 +31,17 @@ func (Module) Startup(ctx context.Context, mono monolith.Monolith) error {
 
 	// setup application
 	var app application.App
-	app = application.New(orders, customers, payments, invoices, shopping, notifications)
+	app = application.New(orders, customers, payments, invoices, shopping, domainDispatcher)
 	app = logging.NewApplication(app, mono.Logger())
+	// set application handlers
+	notificationHandlers := logging.LogDomainEventHandlerAccess(
+		application.NewNotificationHandlers(notifications),
+		mono.Logger(),
+	)
+	invoicesHandlers := logging.LogDomainEventHandlerAccess(
+		application.NewInvoiceHandlers(invoices),
+		mono.Logger(),
+	)
 
 	// setup Driver adapters
 	if err := grpc.RegisterServer(app, mono.RPC()); err != nil {
@@ -41,6 +53,8 @@ func (Module) Startup(ctx context.Context, mono monolith.Monolith) error {
 	if err := rest.RegisterSwagger(mono.Mux()); err != nil {
 		return err
 	}
+	handlers.RegisterNotifcationHandlers(notificationHandlers, domainDispatcher)
+	handlers.RegisterInvoiceHandlers(invoicesHandlers, domainDispatcher)
 
 	return nil
 }

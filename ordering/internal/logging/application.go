@@ -54,3 +54,9 @@ func (a Application) GetOrder(ctx context.Context, query queries.GetOrder) (orde
 	defer func() { a.logger.Info().Err(err).Msg("<-- Ordering.GetOrder") }()
 	return a.App.GetOrder(ctx, query)
 }
+
+func (a Application) GetOrders(ctx context.Context, query queries.GetOrders) (orders []*domain.Order, err error) {
+	a.logger.Info().Msg("--> Ordering.GetOrders")
+	defer func() { a.logger.Info().Err(err).Msg("<-- Ordering.GetOrders") }()
+	return a.App.GetOrders(ctx, query)
+}

@@ -8,6 +8,7 @@ import (
 
 	"github.com/stackus/errors"
 
+	"eda-in-go/internal/ddd"
 	"eda-in-go/ordering/internal/domain"
 )
 
@@ -29,7 +30,9 @@ func (r OrderRepository) Find(ctx context.Context, orderID string) (*domain.Orde
 	const query = "SELECT customer_id, payment_id, shopping_id, invoice_id, items, status FROM %s WHERE id = $1 LIMIT 1"
 
 	order := &domain.Order{
-		ID: orderID,
+		AggregateBase: ddd.AggregateBase{
+			ID: orderID,
+		},
 	}
 
 	var items []byte
@@ -65,9 +68,11 @@ func (r OrderRepository) FindAll(ctx context.Context) ([]*domain.Order, error) {
 
 	orders := []*domain.Order{}
 	for rows.Next() {
-		var order *domain.Order
+		order := &domain.Order{}
+
 		var items []byte
 		var status string
+
 		err = rows.Scan(&order.ID, &order.CustomerID, &order.PaymentID, &order.ShoppingID, &order.InvoiceID, &items, &status)
 		if err != nil {
 			return nil, err

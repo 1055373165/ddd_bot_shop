@@ -7,6 +7,8 @@ import (
 
 	"eda-in-go/payments/internal/application"
 	"eda-in-go/payments/internal/models"
+
+	"github.com/stackus/errors"
 )
 
 type PaymentRepository struct {
@@ -41,6 +43,32 @@ func (r PaymentRepository) Find(ctx context.Context, paymentID string) (*models.
 	err := r.db.QueryRowContext(ctx, r.table(query), paymentID).Scan(&payment.CustomerID, &payment.Amount)
 
 	return payment, err
+}
+
+func (r PaymentRepository) FindAll(ctx context.Context) ([]*models.Payment, error) {
+	const query = "SELECT id, customer_id, amount FROM %s"
+
+	rows, err := r.db.QueryContext(ctx, r.table(query))
+	if err != nil {
+		return nil, errors.Wrap(err, "query payment")
+	}
+	defer func(rows *sql.Rows) {
+		if err = rows.Close(); err != nil {
+			err = errors.Wrap(err, "closing payment")
+		}
+	}(rows)
+
+	payments := []*models.Payment{}
+	for rows.Next() {
+		payment := &models.Payment{}
+		err = rows.Scan(&payment.ID, &payment.CustomerID, &payment.Amount)
+		if err != nil {
+			return nil, errors.Wrap(err, "scanning payment")
+		}
+		payments = append(payments, payment)
+	}
+
+	return payments, nil
 }
 
 func (r PaymentRepository) table(query string) string {

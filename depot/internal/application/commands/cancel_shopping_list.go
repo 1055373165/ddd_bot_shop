@@ -3,6 +3,7 @@ package commands
 import (
 	"context"
 	"eda-in-go/depot/internal/domain"
+	"eda-in-go/internal/ddd"
 )
 
 type CancelShoppingList struct {
@@ -10,11 +11,15 @@ type CancelShoppingList struct {
 }
 
 type CancelShoppingListHandler struct {
-	shoppingLists domain.ShoppingListRepository
+	shoppingLists  domain.ShoppingListRepository
+	domainPushlier ddd.EventPublisher
 }
 
-func NewCancelShoppingListHandler(shoppingLists domain.ShoppingListRepository) CancelShoppingListHandler {
-	return CancelShoppingListHandler{shoppingLists: shoppingLists}
+func NewCancelShoppingListHandler(shoppingLists domain.ShoppingListRepository, domainPublisher ddd.EventPublisher) CancelShoppingListHandler {
+	return CancelShoppingListHandler{
+		shoppingLists:  shoppingLists,
+		domainPushlier: domainPublisher,
+	}
 }
 
 func (h CancelShoppingListHandler) CancelShoppingList(ctx context.Context, cmd CancelShoppingList) error {
@@ -30,5 +35,14 @@ func (h CancelShoppingListHandler) CancelShoppingList(ctx context.Context, cmd C
 	}
 
 	// update shoppling list status with list'
-	return h.shoppingLists.Update(ctx, list)
+	if err = h.shoppingLists.Update(ctx, list); err != nil {
+		return err
+	}
+
+	// publish domain event
+	if err = h.domainPushlier.Publish(ctx, list.GetEvents()...); err != nil {
+		return err
+	}
+
+	return nil
 }

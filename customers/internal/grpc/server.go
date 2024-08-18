@@ -53,7 +53,7 @@ func (s server) GetCustomer(ctx context.Context, request *customerspb.GetCustome
 }
 
 func (s server) GetCustomers(ctx context.Context, request *customerspb.GetCustomersRequest) (*customerspb.GetCustomersResponse, error) {
-	domainCustomers, err := s.app.GetCustomers(ctx)
+	domainCustomers, err := s.app.GetCustomers(ctx, application.GetCustomers{})
 	if err != nil {
 		return nil, err
 	}

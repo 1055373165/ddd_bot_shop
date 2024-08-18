@@ -11,3 +11,7 @@ http:
     - selector: paymentspb.PaymentsService.PayInvoice
       put: /api/payments/invoices/{id}/pay
       body: "*"
+    - selector: paymentspb.PaymentsService.GetInvoices
+      get: /api/payments/invoices
+    - selector: paymentspb.PaymentsService.GetPayments
+      get: /api/payments/payments

@@ -1,50 +1,19 @@
 package domain
 
-import "github.com/stackus/errors"
+import (
+	"eda-in-go/internal/ddd"
+
+	"github.com/stackus/errors"
+)
 
 var (
 	ErrShoppingCannotBeCancelled = errors.Wrap(errors.ErrBadRequest, "the shopping list cannot be cancelled")
+	ErrShoppingCannotBeAssigned  = errors.Wrap(errors.ErrBadRequest, "the shopping list cannot be assigned")
+	ErrShoppingCannotBeCompleted = errors.Wrap(errors.ErrBadRequest, "the shopping list cannot be completed")
 )
-
-type ShoppingListStatus string
-
-const (
-	ShoppingListUnknown   ShoppingListStatus = ""
-	ShoppingListAvailable ShoppingListStatus = "available"
-	ShoppingListAssigned  ShoppingListStatus = "assigned"
-	ShoppingListActive    ShoppingListStatus = "active"
-	ShoppingListCompleted ShoppingListStatus = "completed"
-	ShoppingListCancelled ShoppingListStatus = "cancelled"
-)
-
-func (s ShoppingListStatus) String() string {
-	switch s {
-	case ShoppingListAvailable, ShoppingListAssigned, ShoppingListActive, ShoppingListCompleted, ShoppingListCancelled:
-		return string(s)
-	default:
-		return ""
-	}
-}
-
-func ToShoppingListStatus(status string) ShoppingListStatus {
-	switch status {
-	case ShoppingListAvailable.String():
-		return ShoppingListAvailable
-	case ShoppingListAssigned.String():
-		return ShoppingListAssigned
-	case ShoppingListActive.String():
-		return ShoppingListActive
-	case ShoppingListCompleted.String():
-		return ShoppingListCompleted
-	case ShoppingListCancelled.String():
-		return ShoppingListCancelled
-	default:
-		return ShoppingListUnknown
-	}
-}
 
 type ShoppingList struct {
-	ID            string
+	ddd.AggregateBase
 	OrderID       string
 	Stops         Stops
 	AssignedBotID string
@@ -52,12 +21,20 @@ type ShoppingList struct {
 }
 
 func CreateShopping(id, orderID string) *ShoppingList {
-	return &ShoppingList{
-		ID:      id,
+	shoppingList := &ShoppingList{
+		AggregateBase: ddd.AggregateBase{
+			ID: id,
+		},
 		OrderID: orderID,
-		Status:  ShoppingListAvailable,
+		Status:  ShoppingListIsAvailable,
 		Stops:   make(Stops),
 	}
+	// source event
+	shoppingList.AddEvent(&ShoppingListCreated{
+		ShoppingList: shoppingList,
+	})
+
+	return shoppingList
 }
 
 func (sl *ShoppingList) AddItem(store *Store, product *Product, quantity int) error {
@@ -72,27 +49,64 @@ func (sl *ShoppingList) AddItem(store *Store, product *Product, quantity int) er
 	return sl.Stops[store.ID].AddItem(product, quantity)
 }
 
-func (sl *ShoppingList) Cancel() error {
+func (sl *ShoppingList) IsCancelable() bool {
 	// validate status
+	switch sl.Status {
+	case ShoppingListIsActive, ShoppingListIsAssigned, ShoppingListIsCompleted:
+		return true
+	default:
+		return false
+	}
+}
 
-	sl.Status = ShoppingListCancelled
+func (sl *ShoppingList) Cancel() error {
+	if !sl.IsCancelable() {
+		return ErrShoppingCannotBeCancelled
+	}
+
+	sl.Status = ShoppingListIsCancelled
+
+	sl.AddEvent(&ShoppingListCanceled{
+		ShoppingList: sl,
+	})
 
 	return nil
+}
+
+func (sl ShoppingList) isAssignable() bool {
+	return sl.Status == ShoppingListIsAvailable
 }
 
 func (sl *ShoppingList) Assign(id string) error {
-	// validate status
+	if !sl.isAssignable() {
+		return ErrShoppingCannotBeAssigned
+	}
 
 	sl.AssignedBotID = id
-	sl.Status = ShoppingListAssigned
+	sl.Status = ShoppingListIsAssigned
+
+	sl.AddEvent(&ShoppingListAssigned{
+		ShoppingList: sl,
+		BotID:        id,
+	})
 
 	return nil
 }
 
-func (sl *ShoppingList) Complete() error {
-	// validate status
+func (sl ShoppingList) IsCompletable() bool {
+	return sl.Status == ShoppingListIsAssigned
+}
 
-	sl.Status = ShoppingListCompleted
+func (sl *ShoppingList) Complete() error {
+	if !sl.IsCompletable() {
+		return ErrShoppingCannotBeCompleted
+	}
+
+	sl.Status = ShoppingListIsCompleted
+
+	sl.AddEvent(&ShoppingListCompleted{
+		ShoppingList: sl,
+	})
 
 	return nil
 }

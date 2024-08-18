@@ -38,6 +38,12 @@ func (a Application) GetCustomer(ctx context.Context, get application.GetCustome
 	return a.App.GetCustomer(ctx, get)
 }
 
+func (a Application) GetCustomers(ctx context.Context, get application.GetCustomers) (customer []*domain.Customer, err error) {
+	a.logger.Info().Msg("--> Customers.GetCustomers")
+	defer func() { a.logger.Info().Err(err).Msg("<-- Customers.GetCustomers") }()
+	return a.App.GetCustomers(ctx, get)
+}
+
 func (a Application) EnableCustomer(ctx context.Context, enable application.EnableCustomer) (err error) {
 	a.logger.Info().Msg("--> Customers.EnableCustomer")
 	defer func() { a.logger.Info().Err(err).Msg("<-- Customers.EnableCustomer") }()

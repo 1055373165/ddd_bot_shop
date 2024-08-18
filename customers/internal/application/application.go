@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"eda-in-go/customers/internal/domain"
+	"eda-in-go/internal/ddd"
 
 	"github.com/stackus/errors"
 )
@@ -38,21 +39,23 @@ type (
 		RegisterCustomer(ctx context.Context, register RegisterCustomer) error
 		AuthorizeCustomer(ctx context.Context, authorize AuthorizeCustomer) error
 		GetCustomer(ctx context.Context, get GetCustomer) (*domain.Customer, error)
-		GetCustomers(ctx context.Context) ([]*domain.Customer, error)
+		GetCustomers(ctx context.Context, get GetCustomers) ([]*domain.Customer, error)
 		EnableCustomer(ctx context.Context, enable EnableCustomer) error
 		DisableCustomer(ctx context.Context, discable DisableCustomer) error
 	}
 
 	Application struct {
-		customers domain.CustomerRepository
+		customers       domain.CustomerRepository
+		domainPublisher ddd.EventPublisher
 	}
 )
 
 var _ App = (*Application)(nil)
 
-func New(customers domain.CustomerRepository) *Application {
+func New(customers domain.CustomerRepository, domainPublisher ddd.EventPublisher) *Application {
 	return &Application{
-		customers: customers,
+		customers:       customers,
+		domainPublisher: domainPublisher,
 	}
 }
 
@@ -62,7 +65,17 @@ func (a Application) RegisterCustomer(ctx context.Context, register RegisterCust
 		return err
 	}
 
-	return a.customers.Save(ctx, customer)
+	err = a.customers.Save(ctx, customer)
+	if err != nil {
+		return err
+	}
+
+	// publish domain event
+	if err = a.domainPublisher.Publish(ctx, customer.GetEvents()...); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (a Application) AuthorizeCustomer(ctx context.Context, authorize AuthorizeCustomer) error {
@@ -82,7 +95,7 @@ func (a Application) GetCustomer(ctx context.Context, get GetCustomer) (*domain.
 	return a.customers.Find(ctx, get.ID)
 }
 
-func (a Application) GetCustomers(ctx context.Context) ([]*domain.Customer, error) {
+func (a Application) GetCustomers(ctx context.Context, get GetCustomers) ([]*domain.Customer, error) {
 	return a.customers.FindAll(ctx)
 }
 

@@ -1,6 +1,8 @@
 package domain
 
 import (
+	"eda-in-go/internal/ddd"
+
 	"github.com/stackus/errors"
 )
 
@@ -12,7 +14,7 @@ var (
 )
 
 type Store struct {
-	ID            string
+	ddd.AggregateBase
 	Name          string
 	Location      string
 	Participating bool
@@ -28,7 +30,9 @@ func CreateStore(id, name, location string) (store *Store, err error) {
 	}
 
 	store = &Store{
-		ID:       id,
+		AggregateBase: ddd.AggregateBase{
+			ID: id,
+		},
 		Name:     name,
 		Location: location,
 	}

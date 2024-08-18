@@ -72,3 +72,46 @@ func (s server) CancelInvoice(ctx context.Context, request *paymentspb.CancelInv
 	})
 	return &paymentspb.CancelInvoiceResponse{}, err
 }
+
+func (s server) GetPayments(ctx context.Context, req *paymentspb.GetPaymentsRequest) (*paymentspb.GetPaymentsResponse, error) {
+	payments, err := s.app.GetPayments(ctx, application.GetPayments{})
+	if err != nil {
+		return &paymentspb.GetPaymentsResponse{}, err
+	}
+
+	pbPayments := make([]*paymentspb.Payment, len(payments))
+	for _, payment := range payments {
+		pbPayment := &paymentspb.Payment{
+			Id:         payment.ID,
+			CustomerId: payment.CustomerID,
+			Amount:     payment.Amount,
+		}
+		pbPayments = append(pbPayments, pbPayment)
+	}
+
+	return &paymentspb.GetPaymentsResponse{
+		Payments: pbPayments,
+	}, nil
+}
+
+func (s server) GetInvoices(ctx context.Context, req *paymentspb.GetInvoicesRequest) (*paymentspb.GetInvoicesResponse, error) {
+	invoices, err := s.app.GetInvoices(ctx, application.GetInvoices{})
+	if err != nil {
+		return &paymentspb.GetInvoicesResponse{}, err
+	}
+
+	pbInvoices := make([]*paymentspb.Invoice, len(invoices))
+	for _, invoice := range invoices {
+		pbInvoice := &paymentspb.Invoice{
+			Id:      invoice.ID,
+			OrderId: invoice.OrderID,
+			Amount:  invoice.Amount,
+			Status:  invoice.Status.String(),
+		}
+		pbInvoices = append(pbInvoices, pbInvoice)
+	}
+
+	return &paymentspb.GetInvoicesResponse{
+		Invoices: pbInvoices,
+	}, nil
+}

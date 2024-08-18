@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"eda-in-go/customers/internal/domain"
+	"eda-in-go/internal/ddd"
 	"fmt"
 
 	"github.com/stackus/errors"
@@ -33,7 +34,9 @@ func (r CustomerRepository) Find(ctx context.Context, customerID string) (*domai
 	const query = "SELECT name, sms_number, enabled FROM %s WHERE id = $1 LIMIT 1"
 
 	customer := &domain.Customer{
-		ID: customerID,
+		AggregateBase: ddd.AggregateBase{
+			ID: customerID,
+		},
 	}
 
 	err := r.db.QueryRowContext(ctx, r.table(query), customerID).Scan(&customer.Name, &customer.SmsNumber, &customer.Enabled)

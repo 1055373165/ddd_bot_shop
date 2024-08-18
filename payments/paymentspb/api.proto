@@ -11,6 +11,8 @@ service PaymentsService {
   rpc AdjustInvoice(AdjustInvoiceRequest) returns (AdjustInvoiceResponse) {};
   rpc PayInvoice(PayInvoiceRequest) returns (PayInvoiceResponse) {};
   rpc CancelInvoice(CancelInvoiceRequest) returns (CancelInvoiceResponse) {};
+  rpc GetPayments(GetPaymentsRequest) returns (GetPaymentsResponse) {};
+  rpc GetInvoices(GetInvoicesRequest) returns (GetInvoicesResponse) {};
 }
 
 message AuthorizePaymentRequest {
@@ -52,3 +54,17 @@ message CancelInvoiceRequest {
   string id = 1;
 }
 message CancelInvoiceResponse {}
+
+message GetPaymentsRequest {
+}
+
+message GetPaymentsResponse {
+  repeated Payment payments = 1;
+}
+
+message GetInvoicesRequest {
+}
+
+message GetInvoicesResponse {
+  repeated Invoice invoices = 1;
+}

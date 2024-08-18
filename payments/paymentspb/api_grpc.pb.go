@@ -25,6 +25,8 @@ const (
 	PaymentsService_AdjustInvoice_FullMethodName    = "/paymentspb.PaymentsService/AdjustInvoice"
 	PaymentsService_PayInvoice_FullMethodName       = "/paymentspb.PaymentsService/PayInvoice"
 	PaymentsService_CancelInvoice_FullMethodName    = "/paymentspb.PaymentsService/CancelInvoice"
+	PaymentsService_GetPayments_FullMethodName      = "/paymentspb.PaymentsService/GetPayments"
+	PaymentsService_GetInvoices_FullMethodName      = "/paymentspb.PaymentsService/GetInvoices"
 )
 
 // PaymentsServiceClient is the client API for PaymentsService service.
@@ -37,6 +39,8 @@ type PaymentsServiceClient interface {
 	AdjustInvoice(ctx context.Context, in *AdjustInvoiceRequest, opts ...grpc.CallOption) (*AdjustInvoiceResponse, error)
 	PayInvoice(ctx context.Context, in *PayInvoiceRequest, opts ...grpc.CallOption) (*PayInvoiceResponse, error)
 	CancelInvoice(ctx context.Context, in *CancelInvoiceRequest, opts ...grpc.CallOption) (*CancelInvoiceResponse, error)
+	GetPayments(ctx context.Context, in *GetPaymentsRequest, opts ...grpc.CallOption) (*GetPaymentsResponse, error)
+	GetInvoices(ctx context.Context, in *GetInvoicesRequest, opts ...grpc.CallOption) (*GetInvoicesResponse, error)
 }
 
 type paymentsServiceClient struct {
@@ -107,6 +111,26 @@ func (c *paymentsServiceClient) CancelInvoice(ctx context.Context, in *CancelInv
 	return out, nil
 }
 
+func (c *paymentsServiceClient) GetPayments(ctx context.Context, in *GetPaymentsRequest, opts ...grpc.CallOption) (*GetPaymentsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetPaymentsResponse)
+	err := c.cc.Invoke(ctx, PaymentsService_GetPayments_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *paymentsServiceClient) GetInvoices(ctx context.Context, in *GetInvoicesRequest, opts ...grpc.CallOption) (*GetInvoicesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetInvoicesResponse)
+	err := c.cc.Invoke(ctx, PaymentsService_GetInvoices_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PaymentsServiceServer is the server API for PaymentsService service.
 // All implementations must embed UnimplementedPaymentsServiceServer
 // for forward compatibility.
@@ -117,6 +141,8 @@ type PaymentsServiceServer interface {
 	AdjustInvoice(context.Context, *AdjustInvoiceRequest) (*AdjustInvoiceResponse, error)
 	PayInvoice(context.Context, *PayInvoiceRequest) (*PayInvoiceResponse, error)
 	CancelInvoice(context.Context, *CancelInvoiceRequest) (*CancelInvoiceResponse, error)
+	GetPayments(context.Context, *GetPaymentsRequest) (*GetPaymentsResponse, error)
+	GetInvoices(context.Context, *GetInvoicesRequest) (*GetInvoicesResponse, error)
 	mustEmbedUnimplementedPaymentsServiceServer()
 }
 
@@ -144,6 +170,12 @@ func (UnimplementedPaymentsServiceServer) PayInvoice(context.Context, *PayInvoic
 }
 func (UnimplementedPaymentsServiceServer) CancelInvoice(context.Context, *CancelInvoiceRequest) (*CancelInvoiceResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CancelInvoice not implemented")
+}
+func (UnimplementedPaymentsServiceServer) GetPayments(context.Context, *GetPaymentsRequest) (*GetPaymentsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetPayments not implemented")
+}
+func (UnimplementedPaymentsServiceServer) GetInvoices(context.Context, *GetInvoicesRequest) (*GetInvoicesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetInvoices not implemented")
 }
 func (UnimplementedPaymentsServiceServer) mustEmbedUnimplementedPaymentsServiceServer() {}
 func (UnimplementedPaymentsServiceServer) testEmbeddedByValue()                         {}
@@ -274,6 +306,42 @@ func _PaymentsService_CancelInvoice_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PaymentsService_GetPayments_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPaymentsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PaymentsServiceServer).GetPayments(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PaymentsService_GetPayments_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PaymentsServiceServer).GetPayments(ctx, req.(*GetPaymentsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PaymentsService_GetInvoices_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetInvoicesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PaymentsServiceServer).GetInvoices(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PaymentsService_GetInvoices_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PaymentsServiceServer).GetInvoices(ctx, req.(*GetInvoicesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // PaymentsService_ServiceDesc is the grpc.ServiceDesc for PaymentsService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -304,6 +372,14 @@ var PaymentsService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CancelInvoice",
 			Handler:    _PaymentsService_CancelInvoice_Handler,
+		},
+		{
+			MethodName: "GetPayments",
+			Handler:    _PaymentsService_GetPayments_Handler,
+		},
+		{
+			MethodName: "GetInvoices",
+			Handler:    _PaymentsService_GetInvoices_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

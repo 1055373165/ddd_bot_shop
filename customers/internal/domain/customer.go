@@ -1,11 +1,13 @@
 package domain
 
 import (
+	"eda-in-go/internal/ddd"
+
 	"github.com/stackus/errors"
 )
 
 type Customer struct {
-	ID        string
+	ddd.AggregateBase
 	Name      string
 	SmsNumber string
 	Enabled   bool
@@ -33,7 +35,9 @@ func RegisterCustomer(id, name, smsNumber string) (*Customer, error) {
 	}
 
 	return &Customer{
-		ID:        id,
+		AggregateBase: ddd.AggregateBase{
+			ID: id,
+		},
 		Name:      name,
 		SmsNumber: smsNumber,
 		Enabled:   true,

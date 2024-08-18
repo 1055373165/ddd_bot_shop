@@ -3,6 +3,7 @@ package stores
 import (
 	"context"
 
+	"eda-in-go/internal/ddd"
 	"eda-in-go/internal/monolith"
 	"eda-in-go/stores/internal/application"
 	"eda-in-go/stores/internal/grpc"
@@ -16,13 +17,14 @@ type Module struct {
 
 func (m *Module) Startup(ctx context.Context, mono monolith.Monolith) error {
 	// setup Driven adapters
+	domainPublisher := ddd.NewEventDispatcher()
 	stores := postgres.NewStoreRepository("stores.stores", mono.DB())
 	participatingStores := postgres.NewParticipatingStoreRepository("stores.stores", mono.DB())
 	products := postgres.NewProductRepository("stores.products", mono.DB())
 
 	// setup application
 	var app application.App
-	app = application.New(stores, participatingStores, products)
+	app = application.New(stores, participatingStores, products, domainPublisher)
 	app = logging.LogApplicationAccess(app, mono.Logger())
 
 	// setup Driver adapters

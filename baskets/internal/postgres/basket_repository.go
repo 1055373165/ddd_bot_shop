@@ -9,6 +9,7 @@ import (
 	"github.com/stackus/errors"
 
 	"eda-in-go/baskets/internal/domain"
+	"eda-in-go/internal/ddd"
 )
 
 type BasketRepository struct {
@@ -26,7 +27,9 @@ func (r BasketRepository) Find(ctx context.Context, basketID string) (*domain.Ba
 	const query = "SELECT customer_id, payment_id, items, status FROM %s WHERE id = $1 LIMIT 1"
 
 	basket := &domain.Basket{
-		ID: basketID,
+		AggregateBase: ddd.AggregateBase{
+			ID: basketID,
+		},
 	}
 	var items []byte
 	var status string
@@ -36,10 +39,7 @@ func (r BasketRepository) Find(ctx context.Context, basketID string) (*domain.Ba
 		return nil, errors.ErrInternalServerError.Err(err)
 	}
 
-	basket.Status, err = r.statusToDomain(status)
-	if err != nil {
-		return nil, errors.ErrInternalServerError.Err(err)
-	}
+	basket.Status = domain.ToBasketStatus(status)
 
 	err = json.Unmarshal(items, &basket.Items)
 	if err != nil {
@@ -48,9 +48,8 @@ func (r BasketRepository) Find(ctx context.Context, basketID string) (*domain.Ba
 
 	return basket, nil
 }
-
 func (r BasketRepository) FindAll(ctx context.Context) ([]*domain.Basket, error) {
-	const query = "SELECT customer_id, payment_id, items, status FROM %s"
+	const query = "SELECT id, customer_id, payment_id, items, status FROM %s"
 
 	baskets := []*domain.Basket{}
 
@@ -70,7 +69,7 @@ func (r BasketRepository) FindAll(ctx context.Context) ([]*domain.Basket, error)
 		var items []byte
 		var status string
 
-		err = rows.Scan(&basket.CustomerID, &basket.PaymentID, &items, &status)
+		err = rows.Scan(&basket.ID, &basket.CustomerID, &basket.PaymentID, &items, &status)
 		if err != nil {
 			return nil, errors.ErrInternalServerError.Err(err)
 		}
@@ -128,12 +127,12 @@ func (r BasketRepository) table(query string) string {
 
 func (r BasketRepository) statusToDomain(status string) (domain.BasketStatus, error) {
 	switch status {
-	case domain.BasketOpen.String():
-		return domain.BasketOpen, nil
-	case domain.BasketCancelled.String():
-		return domain.BasketCancelled, nil
-	case domain.BasketCheckedOut.String():
-		return domain.BasketCheckedOut, nil
+	case domain.BasketIsOpen.String():
+		return domain.BasketIsOpen, nil
+	case domain.BasketIsCanceled.String():
+		return domain.BasketIsCanceled, nil
+	case domain.BasketIsCheckedOut.String():
+		return domain.BasketIsCheckedOut, nil
 	default:
 		return domain.BasketUnknown, fmt.Errorf("unknown basket status: %s", status)
 	}

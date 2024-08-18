@@ -49,10 +49,14 @@ func (a Application) CompleteShoppingList(ctx context.Context, cmd commands.Comp
 	return a.App.CompleteShoppingList(ctx, cmd)
 }
 
-func (a Application) GetShoppingList(ctx context.Context, query queries.GetShoppingList) (list *domain.ShoppingList,
-	err error,
-) {
+func (a Application) GetShoppingList(ctx context.Context, query queries.GetShoppingList) (list *domain.ShoppingList, err error) {
 	a.logger.Info().Msg("--> Depot.GetShoppingList")
 	defer func() { a.logger.Info().Err(err).Msg("<-- Depot.GetShoppingList") }()
 	return a.App.GetShoppingList(ctx, query)
+}
+
+func (a Application) GetShoppingLists(ctx context.Context, query queries.GetShoppingLists) (lists []*domain.ShoppingList, err error) {
+	a.logger.Info().Msg("--> Depot.GetShoppingLists")
+	defer func() { a.logger.Info().Err(err).Msg("<-- Depot.GetShoppingLists") }()
+	return a.App.GetShoppingLists(ctx, query)
 }

@@ -6,6 +6,7 @@ import (
 	"github.com/rs/zerolog"
 
 	"eda-in-go/payments/internal/application"
+	"eda-in-go/payments/internal/models"
 )
 
 type Application struct {
@@ -20,6 +21,12 @@ func LogApplicationAccess(application application.App, logger zerolog.Logger) Ap
 		App:    application,
 		logger: logger,
 	}
+}
+
+func (a Application) GetPayments(ctx context.Context, get application.GetPayments) (payments []*models.Payment, err error) {
+	a.logger.Info().Msg("--> Payments.AuthorizePayment")
+	defer func() { a.logger.Info().Err(err).Msg("<-- Payments.AuthorizePayment") }()
+	return a.App.GetPayments(ctx, get)
 }
 
 func (a Application) AuthorizePayment(ctx context.Context, authorize application.AuthorizePayment) (err error) {
@@ -44,6 +51,12 @@ func (a Application) AdjustInvoice(ctx context.Context, adjust application.Adjus
 	a.logger.Info().Msg("--> Payments.AdjustInvoice")
 	defer func() { a.logger.Info().Err(err).Msg("<-- Payments.AdjustInvoice") }()
 	return a.App.AdjustInvoice(ctx, adjust)
+}
+
+func (a Application) GetInvoices(ctx context.Context, get application.GetInvoices) (invoices []*models.Invoice, err error) {
+	a.logger.Info().Msg("--> Payments.GetInvoices")
+	defer func() { a.logger.Info().Err(err).Msg("<-- Payments.Getinvoices") }()
+	return a.App.GetInvoices(ctx, get)
 }
 
 func (a Application) PayInvoice(ctx context.Context, pay application.PayInvoice) (err error) {

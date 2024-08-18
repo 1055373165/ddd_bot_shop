@@ -3,6 +3,7 @@ package commands
 import (
 	"context"
 	"eda-in-go/depot/internal/domain"
+	"eda-in-go/internal/ddd"
 )
 
 type CompleteShoppingList struct {
@@ -10,33 +11,35 @@ type CompleteShoppingList struct {
 }
 
 type CompleteShoppingListHandler struct {
-	shoppingList domain.ShoppingListRepository
-	orders       domain.OrderRepository
+	shoppingLists   domain.ShoppingListRepository
+	domainPublisher ddd.EventPublisher
 }
 
-func NewCompleteShoppingListHandler(shoppingLists domain.ShoppingListRepository, oders domain.OrderRepository) CompleteShoppingListHandler {
+func NewCompleteShoppingListHandler(shoppingLists domain.ShoppingListRepository, domainPublisher ddd.EventPublisher) CompleteShoppingListHandler {
 	return CompleteShoppingListHandler{
-		shoppingList: shoppingLists,
-		orders:       oders,
+		shoppingLists:   shoppingLists,
+		domainPublisher: domainPublisher,
 	}
 }
 
-func (r CompleteShoppingListHandler) CompleteShoppingList(ctx context.Context, cmd CompleteShoppingList) error {
-	list, err := r.shoppingList.Find(ctx, cmd.ID)
+func (h CompleteShoppingListHandler) CompleteShoppingList(ctx context.Context, cmd CompleteShoppingList) error {
+	list, err := h.shoppingLists.Find(ctx, cmd.ID)
 	if err != nil {
 		return err
 	}
 
-	err = list.Complete()
-	if err != nil {
+	if err = list.Complete(); err != nil {
 		return err
 	}
 
-	// 购买的物品已由机器人挑拣完毕，订单可以就绪
-	err = r.orders.Ready(ctx, list.OrderID)
-	if err != nil {
+	if err = h.shoppingLists.Update(ctx, list); err != nil {
+		return nil
+	}
+
+	// publish domain events
+	if err = h.domainPublisher.Publish(ctx, list.GetEvents()...); err != nil {
 		return err
 	}
 
-	return r.shoppingList.Update(ctx, list)
+	return nil
 }

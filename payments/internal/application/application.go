@@ -19,11 +19,17 @@ type (
 		ID string
 	}
 
+	GetPayments struct {
+	}
+
 	CreateInvoice struct {
 		ID        string
 		OrderID   string
 		PaymentID string
 		Amount    float64
+	}
+
+	GetInvoices struct {
 	}
 
 	AdjustInvoice struct {
@@ -46,6 +52,8 @@ type (
 		AdjustInvoice(ctx context.Context, adjust AdjustInvoice) error
 		PayInvoice(ctx context.Context, pay PayInvoice) error
 		CancelInvoice(ctx context.Context, cancel CancelInvoice) error
+		GetPayments(ctx context.Context, get GetPayments) ([]*models.Payment, error)
+		GetInvoices(ctx context.Context, get GetInvoices) ([]*models.Invoice, error)
 	}
 
 	Application struct {
@@ -63,6 +71,16 @@ func New(invoices InvoiceRepository, payments PaymentRepository, orders OrderRep
 		payments: payments,
 		orders:   orders,
 	}
+}
+
+func (a Application) GetPayments(ctx context.Context, get GetPayments) ([]*models.Payment, error) {
+	payments, err := a.payments.FindAll(ctx)
+
+	if err != nil {
+		return nil, errors.Wrap(errors.ErrNotFound, "payment cannot be find all")
+	}
+
+	return payments, nil
 }
 
 func (a Application) AuthorizePayment(ctx context.Context, authorize AuthorizePayment) error {
@@ -88,6 +106,15 @@ func (a Application) CreateInvoice(ctx context.Context, create CreateInvoice) er
 		Amount:  create.Amount,
 		Status:  models.InvoicePending,
 	})
+}
+
+func (a Application) GetInvoices(ctx context.Context, get GetInvoices) ([]*models.Invoice, error) {
+	invoices, err := a.invoices.FindAll(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err, "invoice cannot be find all")
+	}
+
+	return invoices, nil
 }
 
 func (a Application) AdjustInvoice(ctx context.Context, adjust AdjustInvoice) error {

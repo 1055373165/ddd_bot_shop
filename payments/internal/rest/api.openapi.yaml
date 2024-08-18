@@ -7,6 +7,12 @@ openapiOptions:
           version: "1.0.0"
         basePath: /
   method:
+    - method: paymentspb.PaymentsService.GetPayments
+      option:
+        operationId: getPayments
+        tags:
+          - Payment
+        summary: get Payment list
     - method: paymentspb.PaymentsService.AuthorizePayment
       option:
         operationId: authorizePayment
@@ -25,3 +31,10 @@ openapiOptions:
         tags:
           - Invoice
         summary: Pay an invoice
+    - method: paymentspb.PaymentsService.GetInvoices
+      option:
+        operationId: getInvoices
+        tags:
+          - Invoice
+        summary: get invoice list
+    
